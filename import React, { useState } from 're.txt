@@ -1,0 +1,105 @@
+import React, { useState } from 'react';
+import QRCode from 'react-qr-code';
+
+const ContactForm = () => {
+    const [name, setName] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [qrValue, setQrValue] = useState(''); // State for QR code value
+
+    const handleFormSubmit = (event) => {
+        event.preventDefault();
+        const qrData = `MECARD:N:${name};TEL:${phoneNumber};`;
+        setQrValue(qrData); // Update QR code value on submit
+    };
+
+    return (
+        <div>
+            <form onSubmit={handleFormSubmit}>
+                <label>
+                    Name:
+                    <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
+                </label>
+                <label>
+                    Phone Number:
+                    <input
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        required
+                    />
+                </label>
+                <button type="submit">Generate Contact QR Code</button>
+            </form>
+            {qrValue && ( // Conditionally render QR code only if qrValue exists
+                <QRCode value={qrValue} size={256} level="H" />
+            )}
+        </div>
+    );
+};
+
+export default ContactForm;
+
+
+import React, { useState } from 'react';
+import QRCode from 'react-qr-code';
+import { saveAs } from 'file-saver'; // For client-side download
+
+const ContactForm = () => {
+    const [name, setName] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [qrValue, setQrValue] = useState(''); // State for QR code value
+
+    const handleFormSubmit = (event) => {
+        event.preventDefault();
+        const qrData = `MECARD:N:${name};TEL:${phoneNumber};`;
+        setQrValue(qrData); // Update QR code value on submit
+    };
+
+    const handleDownloadQRCode = () => {
+        if (!qrValue) return; // Check if QR code exists before downloading
+
+        const canvas = document.querySelector('canvas'); // Get the QR code canvas
+        if (!canvas) return; // Check if canvas exists
+
+        const dataURL = canvas.toDataURL('image/png');
+        const fileName = 'contact.png';
+        const blob = new Blob([new Uint8Array(atob(dataURL.split(',')[1]).split('').map(char => char.charCodeAt(0)))], { type: 'image/png' }); // Decode Base64 data
+
+        saveAs(blob, fileName);
+    };
+
+    return (
+        <div>
+            <form onSubmit={handleFormSubmit}>
+                <label>Name:</label> <br />
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                /> <br />
+                <label>Phone Number:</label> <br />
+                <input
+                    type="tel"
+                    value={phoneNumber} maxLength={10} minLength={10} pattern="[6789][0-9]{9}"
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    required
+                /> <br /> <br />
+                <button type="submit">Generate Contact QR Code</button>
+            </form> <br />
+            {qrValue && (
+                <div>
+                    <QRCode value={qrValue} size={256} level="H" /> <br /> <br /> <br />    
+                    <button onClick={handleDownloadQRCode}>Download QR Code</button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ContactForm;

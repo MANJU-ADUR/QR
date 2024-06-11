@@ -1,0 +1,58 @@
+import React, { useState, useRef } from 'react';
+import QRCode from 'react-qr-code';
+import { saveAs } from 'file-saver'; // For client-side download
+import { toPng } from 'html-to-image'; // To convert HTML to image
+
+const ContactForm = () => {
+  const [name, setName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [qrValue, setQrValue] = useState(''); // State for QR code value
+  const qrRef = useRef(null); // Reference for the QR code element
+
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+    const qrData = `MECARD:N:${name};TEL:${phoneNumber};`;
+    setQrValue(qrData); // Update QR code value on submit
+  };
+
+  const handleDownload = async () => {
+    if (qrRef.current) {
+      const dataUrl = await toPng(qrRef.current);
+      saveAs(dataUrl, 'contact-qr-code.png');
+    }
+  };
+
+  return (
+    <div>
+      <form onSubmit={handleFormSubmit}>
+        <label>Name:</label> <br />
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        /> <br />
+        <label>Phone Number:</label> <br />
+        <input
+          type="tel"
+          value={phoneNumber}
+          maxLength={10}
+          minLength={10}
+          pattern="[6789][0-9]{9}"
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          required
+        /> <br /> <br />
+        <button type="submit">Generate Contact QR Code</button>
+      </form> <br />
+      {qrValue && (
+        <div>
+          <QRCode ref={qrRef} value={qrValue} size={256} level="H" />
+          <br />
+          <button onClick={handleDownload}>Download QR Code</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ContactForm;
